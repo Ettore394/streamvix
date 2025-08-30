@@ -8,27 +8,28 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Serve per il push dei cambiamenti
+      pull-requests: write # Utile per creare PR se necessario
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0 # Necessario per il rebase
+        fetch-depth: 0
+        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }} # Usa il token anche per il checkout
 
-    - name: Set up Git user
+    - name: Configure Git user
       run: |
-        git config --global user.name "${{ secrets.GIT_USERNAME }}"
-        git config --global user.email "${{ secrets.GIT_EMAIL }}"
-
-    - name: Add upstream repository
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+    
+    - name: Sync with upstream
       run: |
         git remote add upstream https://github.com/qwertyuiop8899/streamvix.git
         git fetch upstream
         git rebase upstream/main
 
-    # AGGIUNTA: Configura git per usare il Personal Access Token (PAT)
-    - name: Configura git per PAT
-      run: git config --global url."https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
     - name: Push changes
-      run: git push --force-with-lease origin main
+      run: |
+        git push origin main --force-with-lease
